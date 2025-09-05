@@ -1,103 +1,218 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React from 'react';
+import { BookOpen, Users, TrendingUp, MessageCircle } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Activity, LibraryBook } from '@/lib/types';
+
+// Mock data - replace with actual API calls
+const mockActivities: Activity[] = [
+  {
+    id: '1',
+    user: { id: '1', name: 'John Doe' },
+    type: 'review',
+    book: { 
+      id: 'book1', 
+      title: 'The Great Gatsby',
+      authors: ['F. Scott Fitzgerald']
+    },
+    rating: 5,
+    review: 'An absolute masterpiece! Fitzgerald\'s prose is simply beautiful.',
+    likes: 12,
+    comments: 3,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '2',
+    user: { id: '2', name: 'Jane Smith' },
+    type: 'finished',
+    book: { 
+      id: 'book2', 
+      title: '1984',
+      authors: ['George Orwell']
+    },
+    likes: 8,
+    comments: 1,
+    createdAt: new Date(Date.now() - 86400000).toISOString()
+  }
+];
+
+const mockCurrentlyReading: LibraryBook[] = [
+  {
+    id: 'book3',
+    volumeInfo: {
+      title: 'Dune',
+      authors: ['Frank Herbert'],
+      publishedDate: '1965',
+      imageLinks: { thumbnail: '/placeholder-book.png' }
+    },
+    dateAdded: new Date().toISOString(),
+    readingStatus: 'currently-reading',
+    progress: 45
+  }
+];
+
+function StatsCard({ icon: Icon, title, value, subtitle }: {
+  icon: React.ElementType;
+  title: string;
+  value: string | number;
+  subtitle?: string;
+}) {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <Card className="text-center">
+      <Icon className="mx-auto mb-3 h-8 w-8" style={{ color: 'var(--accent)' }} />
+      <h3 className="mb-2 font-semibold text-[var(--text-primary)]">{title}</h3>
+      <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
+      {subtitle && (
+        <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p>
+      )}
+    </Card>
+  );
+}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+function ActivityFeed({ activities }: { activities: Activity[] }) {
+  if (activities.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <MessageCircle className="mx-auto mb-4 h-12 w-12 text-[var(--text-muted)]" />
+        <h3 className="mb-2 text-xl font-semibold">No activity yet</h3>
+        <p className="text-[var(--text-secondary)]">
+          Start reading and reviewing books to see activity from friends!
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {activities.map((activity) => (
+        <Card key={activity.id}>
+          <div className="flex gap-4">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white font-semibold">
+              {activity.user.name.charAt(0)}
+            </div>
+            
+            <div className="min-w-0 flex-1">
+              <div className="mb-2 flex flex-wrap items-center gap-1">
+                <span className="font-medium text-[var(--text-primary)]">
+                  {activity.user.name}
+                </span>
+                <span className="text-sm text-[var(--text-secondary)]">
+                  {activity.type === 'review' ? 'reviewed' : 
+                   activity.type === 'finished' ? 'finished reading' : 
+                   'started reading'}
+                </span>
+                <span className="font-medium text-[var(--text-primary)]">
+                  {activity.book.title}
+                </span>
+              </div>
+              
+              {activity.rating && (
+                <div className="mb-2 flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <span
+                      key={i}
+                      className={`text-lg ${
+                        i < activity.rating! ? 'text-yellow-400' : 'text-gray-300'
+                      }`}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              {activity.review && (
+                <p className="mb-3 text-[var(--text-secondary)]">{activity.review}</p>
+              )}
+              
+              <div className="flex items-center gap-4 text-sm text-[var(--text-secondary)]">
+                <span>{activity.likes} likes</span>
+                <span>{activity.comments} comments</span>
+                <span className="ml-auto text-[var(--text-muted)]">
+                  {new Date(activity.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h1 className="mb-4 text-4xl font-bold text-[var(--text-primary)]">
+          Welcome to BookKeeper
+        </h1>
+        <p className="text-lg text-[var(--text-secondary)]">
+          Track your reading journey and connect with fellow book lovers
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <StatsCard
+          icon={BookOpen}
+          title="Books Read"
+          value={42}
+          subtitle="This year"
+        />
+        <StatsCard
+          icon={TrendingUp}
+          title="Reading Goal"
+          value="28/50"
+          subtitle="56% complete"
+        />
+        <StatsCard
+          icon={Users}
+          title="Friends"
+          value={15}
+          subtitle="Following"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <h2 className="mb-6 text-2xl font-semibold text-[var(--text-primary)]">
+            Friend Activity
+          </h2>
+          <ActivityFeed activities={mockActivities} />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        
+        <div>
+          <h2 className="mb-6 text-xl font-semibold text-[var(--text-primary)]">
+            Currently Reading
+          </h2>
+          <div className="space-y-4">
+            {mockCurrentlyReading.map((book) => (
+              <Card key={book.id}>
+                <h3 className="mb-2 font-medium">{book.volumeInfo.title}</h3>
+                <p className="mb-3 text-sm text-[var(--text-secondary)]">
+                  {book.volumeInfo.authors?.join(', ')}
+                </p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Progress</span>
+                    <span>{book.progress}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-[var(--bg-secondary)]">
+                    <div
+                      className="h-full transition-all duration-300"
+                      style={{
+                        width: `${book.progress}%`,
+                        backgroundColor: 'var(--accent)'
+                      }}
+                    />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
