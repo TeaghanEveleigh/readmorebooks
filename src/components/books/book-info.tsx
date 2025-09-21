@@ -117,7 +117,37 @@ export default function BookInfo({ book }: Props) {
   const thumbnail = toHttps(getThumb(book)) 
   console.log(thumbnail)
 
+  const [libs, setLibs] = React.useState<{id:string; name:string}[]>([]);
+  const [selected, setSelected] = React.useState<string>('');
+  const [message, setMessage] = React.useState<string>('');
 
+  React.useEffect(()=>{
+    (async ()=>{
+      try{
+        const res = await fetch('/api/libraries', { cache: 'no-store' });
+        if (res.ok){
+          const data = await res.json();
+          setLibs(data.map((l:any)=>({id:l.id, name:l.name})));
+          setSelected((data.find((l:any)=>l.name==='Currently Reading')?.id) || '');
+        }
+      }catch{}
+    })();
+  },[]);
+
+  async function addToLibrary(){
+    setMessage('');
+    if (!selected) { setMessage('Select a library first'); return;}
+    const payload = {
+      googleId: book.id,
+      title: volumeInfo?.title || 'Untitled',
+      authors: volumeInfo?.authors || [],
+      thumbnail: thumbnail || undefined,
+      totalPages: volumeInfo?.pageCount || undefined
+    };
+    const res = await fetch(`/api/libraries/${selected}/books`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+    if (res.ok) setMessage('Added!');
+    else setMessage('Failed to add');
+  }
 
   return (
     <article className="surface-card p-6">
@@ -199,6 +229,19 @@ export default function BookInfo({ book }: Props) {
   </div>
 )}
 
+        </div>
+      </div>
+
+
+      {/* Add to Library */}
+      <div className="mt-6 p-4 rounded-lg bg-[var(--bg-secondary)]">
+        <div className="flex items-center gap-2">
+          <select value={selected} onChange={e=>setSelected(e.target.value)} className="rounded-md border px-3 py-2 bg-[var(--bg-primary)]">
+            <option value="">Select library…</option>
+            {libs.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+          </select>
+          <button onClick={addToLibrary} className="rounded-md px-4 py-2 bg-[var(--accent)] text-white">Add to library</button>
+          {message && <span className="text-sm ml-2">{message}</span>}
         </div>
       </div>
 

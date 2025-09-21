@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { Book, Search, Home, Library, BookOpen } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -14,6 +15,7 @@ const navigation = [
 ];
 
 export function Header() {
+  const { data: session } = useSession();
   const pathname = usePathname();
 
   return (
@@ -49,8 +51,21 @@ export function Header() {
               );
             })}
             
-            <div className="ml-4 border-l border-[var(--border)] pl-4">
+            <div className="ml-4 flex items-center gap-3 border-l border-[var(--border)] pl-4">
               <ThemeToggle />
+              {session?.user ? (
+                <>
+                  <span className="text-sm text-[var(--text-secondary)] hidden sm:inline">Hi, {session.user.name || session.user.email}</span>
+                  <button
+                    onClick={() => signOut({ callbackUrl: '/' })}
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+                  >
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <Link href="/auth/signin" className="rounded-lg px-3 py-2 text-sm font-medium text-white bg-[var(--accent)] hover:opacity-90">Sign in</Link>
+              )}
             </div>
           </nav>
         </div>
